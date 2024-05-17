@@ -14,17 +14,17 @@ def get_gemini_image_response(input_text, image):
     if input_text != "":
         response = model.generate_content([input_text, image])
     else:
-        response = model.generate_content(image)
+        response = model.generate_content(image)    
+    return response.text
     
-    if hasattr(response, 'parts') and response.parts:
-        return response.text
-    else:
-        return "Sorry, the response is empty or invalid."
 
 def get_gemini_question_response(question):
     model = genai.GenerativeModel('gemini-pro')
-    response = model.generate_content(question)
-    return response.text
+    if question != "":
+        response = model.generate_content(question)
+        return response.text
+    else:
+        return "Need to input something"
 
 def to_markdown(text):
     text = text.replace('•', '  *')
@@ -32,7 +32,10 @@ def to_markdown(text):
 
 st.set_page_config(page_title="Gemini Demo")
 
-options = ["Gemini Image Demo", "Q&A Demo"]
+if 'chat_history' not in st.session_state:
+    st.session_state['chat_history'] = []
+
+options = ["Gemini Image Demo", "Q&A Demo","History"]
 selected_option = st.sidebar.multiselect("Select Demo", options)
 
 if "Gemini Image Demo" in selected_option:
@@ -46,10 +49,17 @@ if "Gemini Image Demo" in selected_option:
         st.image(image, caption="Uploaded Image.", use_column_width=True)
 
     submit = st.button("Tell me about the image")
-    if submit:
+    if submit and uploaded_file is not None:
         response = get_gemini_image_response(input_text, image)
         st.subheader("The Response is")
+        if input_text is None:
+            st.session_state['chat_history'].append(("You", "-"))
+        else:
+            st.session_state['chat_history'].append(("You", input_text))
+            st.session_state['chat_history'].append(("Bot", response))
         st.write(response)
+    elif submit and uploaded_file is None:
+        st.write("Please upload images")
 
 if "Q&A Demo" in selected_option:
     st.header("Q&A Demo")
@@ -60,4 +70,18 @@ if "Q&A Demo" in selected_option:
         response_question = get_gemini_question_response(input_question)
         st.subheader("The Response is")
         st.markdown(to_markdown(response_question))
+        st.session_state['chat_history'].append(("You", input_question))
+        st.session_state['chat_history'].append(("Bot", response_question))
+        
+if "History" in selected_option:
+    st.header("History")
+    for role, text in st.session_state['chat_history']:
+        st.write(f"{role}: {text}")
 
+
+
+# st.session_state['chat_history'].append(("You", input))
+#     st.subheader("The Response is")
+#     for chunk in response:
+#         st.write(chunk.text)
+#         st.session_state['chat_history'].append(("Bot", chunk.text))
