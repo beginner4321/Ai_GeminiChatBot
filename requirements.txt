@@ -2,3 +2,10 @@ streamlit
 google-generativeai
 python-dotenv
 textwrap3
+transformers
+diffusers
+huggingface-hub
+torch
+torchvision
+torchaudio
+accelerate
