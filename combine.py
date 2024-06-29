@@ -116,4 +116,3 @@ if "History" in selected_option:
     st.header("History")
     for role, text in st.session_state['chat_history']:
         st.write(f"{role}: {text}")
-        st.image
